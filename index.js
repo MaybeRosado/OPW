@@ -1,56 +1,69 @@
+const cors = require('cors')
 const express = require('express');
-const cors = require('cors');
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-
 app.use(express.static('dist'))
 
+app.post('/api/persons', (req, res) => {
+    res.status(201).json({message: 'Person added', data: req.body})
+})
+
+
 let persons = [
-    {
-        "id": "6acf",
-        "name": "Denis Villenueve",
-        "number": "312345612"
+    { 
+      "id": 1,
+      "name": "Arto Hellas", 
+      "number": "040-123456"
     },
-    {
-        "id": "0937",
-        "name": "Dan Eleazar",
-        "number": "31231224"
+    { 
+      "id": 2,
+      "name": "Ada Lovelace", 
+      "number": "39-44-5323523"
     },
-    {
-        "id": "4752",
-        "name": "Miguel Castellanos",
-        "number": "312456812"
+    { 
+      "id": 3,
+      "name": "Dan Abramov", 
+      "number": "12-43-234345"
+    },
+    { 
+      "id": 4,
+      "name": "Mary Poppendieck", 
+      "number": "39-23-6423122"
     }
 ];
-
-app.get('/', (request, response) => {
-    response.send('<h1>Hello World!</h1>');
-});
 
 app.get('/api/persons', (request, response) => {
     response.json(persons);
 })
 
+app.get('/api/info', (request, response) => {
+    const resTime = new Date()
+    response.send(`<p> <b>Phonebook has info for ${persons.length} people </p>
+                    <p>${resTime}</p>
+        `);
+    
+})
+
 app.get('/api/persons/:id', (request, response) => {
     const id = Number(request.params.id);
-    const person = persons.map(person => person.id === id);
+    const person = persons.find(person => person.id === id);
 
     if(person){
-        response.json(person)
+        response.json(person);
     }else{
         response.status(404).end();
     }
-});
+})
 
 app.delete('/api/persons/:id', (request, response) => {
     const id = Number(request.params.id);
     persons = persons.filter(person => person.id !== id);
 
     response.status(204).end();
-
 })
+
 
 const generateId = () => {
     const maxId = persons.length > 0
@@ -60,11 +73,17 @@ const generateId = () => {
 }
 
 app.post('/api/persons', (request, response) => {
-    const body = request.body
+    const body = request.body;
+    
+    const duplicate = persons.find(person => person.name === body.name);
 
-    if(!body.name){
+    if(!body.name || !body.number){
         return response.status(400).json({
             error: 'Information missing'
+        })
+    }else if(duplicate){
+        return response.status(400).json({
+            error: 'Name must be unique' 
         })
     }
 
@@ -74,12 +93,12 @@ app.post('/api/persons', (request, response) => {
         id: generateId()
     }
 
-    persons = person.concat(person);
+    persons = persons.concat(person);
+    console.log(person)
     response.json(person);
-});
+})
 
-
-const PORT = process.env.PORT || 3001
+const PORT = 3001;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on ${PORT}`);
 })
